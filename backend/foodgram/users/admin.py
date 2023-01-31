@@ -11,16 +11,13 @@ class UserClass(admin.ModelAdmin):
         'last_name',
         'password',
         'email',
-        'role',
         'is_staff',
         'is_active',
     )
     list_filter = (
-        'role',
         'last_login',
     )
     search_fields = (
         'username',
         'email',
-        'role',
     )

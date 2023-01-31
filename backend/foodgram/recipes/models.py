@@ -1,19 +1,31 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from colorfield.fields import ColorField
 from django.core.validators import MinValueValidator
-from users.models import User
+
+User = get_user_model()
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=50)
-    color = ColorField(format="hexa")
+    name = models.CharField(
+        'Наименование тега',
+        max_length=150,
+        unique=True,
+    )
+    color = ColorField(
+        'Цвет',
+        format="hexa",
+        unique=True,
+    )
     slug = models.SlugField(
-        max_length=50,
+        'Слаг тега',
+        max_length=150,
         unique=True,
         db_index=True
     )
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
@@ -37,13 +49,18 @@ class RecipeTag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=50
+        'Наименование ингредиента',
+        max_length=150
     )
-    measurement_unit = models.CharField(max_length=50)
+    measurement_unit = models.CharField(
+        'Ед. изм.',
+        max_length=150,
+    )
 
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ('id',)
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'measurement_unit'],
@@ -147,16 +164,22 @@ class Recipe(models.Model):
         )
 
 
-class Follow(models.Model):
+class Subscribe(models.Model):
     user = models.ForeignKey(
         User,
         related_name='follower',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Подписчик'
     )
     author = models.ForeignKey(
         User,
         related_name='following',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Автор'
+    )
+    created = models.DateTimeField(
+        'Дата подписки',
+        auto_now_add=True
     )
 
     def __str__(self):

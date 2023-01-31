@@ -3,7 +3,7 @@ from django.contrib import admin
 # from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 
 from .models import (Tag, RecipeTag, Ingredient, 
-    RecipeIngredient, Recipe, Follow, Favorite,
+    RecipeIngredient, Recipe, Subscribe, Favorite,
 )
 
 # class OutstandingTokenAdmin(OutstandingTokenAdmin):
@@ -39,5 +39,5 @@ class IngredientClass(admin.ModelAdmin):
     )
 
 admin.site.register(Recipe)
-admin.site.register(Follow)
+admin.site.register(Subscribe)
 admin.site.register(Favorite)

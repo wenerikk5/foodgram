@@ -1,5 +1,5 @@
-from django.shortcuts import render, get_list_or_404, get_object_or_404
-from django.contrib.auth.hashers import check_password
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
@@ -7,94 +7,49 @@ from rest_framework import filters, status, viewsets, serializers
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
-
+from djoser.views import UserViewSet
 from recipes.models import *
-from users.models import User
-from .serializers import (UserSerializer, AccountSerializer, 
-    TokenSerializer, PasswordUpdateSerializer, TagSerializer,
+
+
+from .serializers import (AccountCreateSerializer, AccountListSerializer, 
+    PasswordChangeSerializer, TagSerializer,
     RecipeTagSerializer, IngredientSerializer, RecipeIngredientSerializer,
-    RecipeSerializer, FollowingSerializer, FavoritesSerializer,
+    RecipeSerializer, SubscribeSerializer, FavoritesSerializer,
 )
 from .mixins import ListRetrieveModelMixin
-# from .utils import get_tokens_for_user
+
+User = get_user_model()
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    """Registration of a new User. List all users."""
+class CustomUserViewSet(UserViewSet):
+    """Create User, set new password, get 'me' page, get subscribers list."""
+    
     queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (AllowAny,)
-    pagination_class = PageNumberPagination
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action == 'set_password':
+            return PasswordChangeSerializer
+        if self.action == 'create':
+            return AccountCreateSerializer
+        return AccountListSerializer
 
     @action(
-        methods=['GET',],
         detail=False,
-        permission_classes=(IsAuthenticated,),
-        serializer_class=AccountSerializer
+        permission_classes=(IsAuthenticated,)
     )
-    def me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
-
-
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def user_auth(request):
-#     """Getting login token."""
-#     serializer = TokenSerializer(data=request.data)
-#     serializer.is_valid(raise_exception=True)
-   
-#     user = get_object_or_404(
-#         User,
-#         email=serializer.validated_data.get('email')
-#     )
-    
-#     if not check_password(serializer.validated_data.get('password'), user.password):
-#         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-
-#     response = get_tokens_for_user(user)
-#     user.refresh_token = response['refresh']
-#     user.save()
-#     return Response(
-#         {
-#             "auth_token": response['access'],
-#             "refresh": response['refresh']
-#         },
-#         status=status.HTTP_200_OK
-#     )
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def user_password_change(request):
-    """Changing of User's password."""
-
-    serializer = PasswordUpdateSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    if not check_password(
-        serializer.validated_data.get('current_password'),
-        request.user.password
-    ):
-        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-    user = User.objects.get(username=request.user.username)
-    user.set_password(serializer.validated_data.get('new_password'))
-    user.save()
-    return Response(status=status.HTTP_200_OK)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def user_logout(request):
-    """Disactivating current token on Logout."""
-
-    user = User.objects.get(username=request.user.username)
-    token = RefreshToken(user.refresh_token)
-    token.blacklist()
-    
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    def subscriptions(self, request):
+        queryset = Subscribe.objects.filter(user=request.user)
+        pages = self.paginate_queryset(queryset)
+        serializer = SubscribeSerializer(
+            pages,
+            many=True,
+            context={'request', request},
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 class TagViewSet(ListRetrieveModelMixin):
@@ -270,7 +225,7 @@ class SubscribeView(APIView):
 
         all = User.objects.all().filter(id__in=sub_ids)
 
-        serializer = FollowingSerializer(self.paginate_queryset(all), many=True)
+        serializer = SubscribeSerializer(self.paginate_queryset(all), many=True)
 
         return self.get_paginated_response(
             serializer.data)
@@ -312,7 +267,7 @@ class SubscribeView(APIView):
                 author=author
             )
 
-        serializer = FollowingSerializer(author, context={'request': request})
+        serializer = SubscribeSerializer(author, context={'request': request})
 
         if created:
             return Response(
