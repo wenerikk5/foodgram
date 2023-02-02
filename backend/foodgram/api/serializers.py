@@ -95,6 +95,7 @@ class PasswordChangeSerializer(PasswordSerializer):
         return data
 
 class TagSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
     class Meta:
         model = Tag
         fields = (
@@ -102,6 +103,12 @@ class TagSerializer(serializers.ModelSerializer):
             'name',
             'color',
             'slug')
+        read_only_fields = ('name', 'color', 'slug')
+        # extra_kwargs = {
+        #     'name': {'validators': []},
+        #     'color': {'validators': []},
+        #     'slug': {'validators': []},
+        # }
 
 
 class RecipeTagSerializer(serializers.ModelSerializer):
@@ -122,6 +129,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientListSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
     measurement_unit = serializers.SerializerMethodField(read_only=True)
     name = serializers.ReadOnlyField(source='name.name')
     
@@ -151,13 +159,13 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         )
 
 
-class RecipeSerializer(serializers.ModelSerializer):
+class RecipeReadSerializer(serializers.ModelSerializer):
     author = AccountListSerializer(read_only=True)
-    tags = TagSerializer(many=True)
+    tags = TagSerializer(many=True, read_only=True)
     ingredients = IngredientListSerializer(many=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
-    image=Base64ImageField(use_url=True, required=False)
+
 
     class Meta:
         model = Recipe
@@ -189,20 +197,70 @@ class RecipeSerializer(serializers.ModelSerializer):
         except:
             return False
 
-    
-    def create(self, validated_data):
-        print("====Validated data:", validated_data)
-        tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients')
 
-        recipe = Recipe.objects.create(**validated_data)
-        
-        for tag in tags:
-            current_tag = Tag.objects.get(id=tag)
-            RecipeTag.objects.create(
-                tag=current_tag,
-                recipe=recipe
-            )
+class RecipeWriteSerializer(serializers.ModelSerializer):
+    author = AccountListSerializer(read_only=True)
+    tags = TagSerializer(many=True)
+    ingredients = IngredientListSerializer(many=True)
+    image=Base64ImageField(use_url=True, required=False)
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',          
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
+
+    def validate(self, attrs):
+        try:
+            tags = attrs.get('tags')
+        except:
+            raise serializers.ValidationError(
+                    {
+                        'tags':f"Tags must be selected!"
+                    }
+                )
+        if len(tags) == 0:
+            raise serializers.ValidationError(
+                    {
+                        'tags':f"Tags must be selected!"
+                    }
+                )
+        # 'ingredients' list exist and not empty.
+        try:
+            ingredients = attrs.get('ingredients')
+        except:
+            raise serializers.ValidationError(
+                    {
+                        'ingredients':f"Ingredients must be added!"
+                    }
+                )
+        if len(ingredients) < 1:
+            raise serializers.ValidationError(
+                    {
+                        'ingredients':f"Ingredients must be added!"
+                    }
+                )
+
+        # 'ingredients' items are exist instances of models.
+        for ingredient in ingredients:
+            try:
+                current_ingredient = Ingredient.objects.get(id=ingredient['id'])
+            except ObjectDoesNotExist:
+                raise serializers.ValidationError(
+                    {
+                        'ingredients:': f'Ingredient with id={ingredient["id"]} do not exist!'
+                    }
+                )
+        return attrs
+
+    def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
             current_ingredient = Ingredient.objects.get(id=ingredient['id'])
             instance = IngredientList.objects.create(
@@ -213,73 +271,46 @@ class RecipeSerializer(serializers.ModelSerializer):
                 ingredient_list=instance,
                 recipe=recipe,
             )
+
+    def create(self, validated_data):
+        print("====Validated data:", validated_data)
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+
+        recipe = Recipe.objects.create(**validated_data)
+        tag_ids = [tag['id'] for tag in tags]
+        print('=====tag_ids:', tag_ids)
+        recipe.tags.set(tag_ids)
+        # for tag in tags:
+        #     current_tag = Tag.objects.get(id=tag['id'])
+        #     RecipeTag.objects.create(
+        #         tag=current_tag,
+        #         recipe=recipe
+        #     )
+        self.create_ingredients(ingredients, recipe)
+        
         return recipe
 
     def update(self, instance, validated_data):
-
-        tags = validated_data.get('tags')
-        ingredients = validated_data.get('ingredients')
-
-        # Create list of actual tags.
-        tag_ids_to_save = []
-
-        for tag in tags:
-            current_tag = Tag.objects.get(id=tag)
-            # Check if instance exists. If so, delete from delete_list.
-            obj, created = RecipeTag.objects.get_or_create(
-                tag=current_tag,
-                recipe=instance
-            )
-            tag_ids_to_save.append(obj.id)
-
-        print("===tag_ids_to_save:", tag_ids_to_save)
-        # Create list to delete considering ids to save.
-        tags_to_delete=RecipeTag.objects \
-            .filter(recipe__id=instance.id) \
-            .exclude(id__in=tag_ids_to_save)
-        print("===tag_ids_to_delete:", tags_to_delete)
-        if len(tags_to_delete) > 0:
-            for item in tags_to_delete:
-                item.delete()
+        print("=====UPDATE in serializer")
+        if 'tags' in validated_data:
+            tag_ids = [tag['id'] for tag in validated_data.pop('tags')]
+            instance.tags.set(tag_ids)
+        if 'ingredients' in validated_data:
+            ingredients = validated_data.pop('ingredients')
+            instance.ingredients.clear()
+            self.create_ingredients(ingredients, instance)
         
-        # Remove all current IngredientList instances.
-        # Corresponding RecipeIngredient instances be auto delete by CASCADE.
-        related_recipe_ingredients = RecipeIngredient.objects \
-            .filter(recipe__id=instance.id)
-
-        ingredient_list_ids_to_remove = []
-
-        for item in related_recipe_ingredients:
-            ingredient_list_ids_to_remove.append(item.ingredient_list.id)
-
-        ingredient_list_to_remove = IngredientList.objects \
-            .filter(id__in=ingredient_list_ids_to_remove)
-
-        if len(ingredient_list_to_remove) > 0:
-            for ingredient_item in ingredient_list_to_remove:
-                ingredient_item.delete()
-
-        # Create new ingredients like in Create method.
-        for ingredient in ingredients:
-            current_ingredient = Ingredient.objects.get(id=ingredient['id'])
-            object = IngredientList.objects.create(
-                name=current_ingredient,
-                amount=ingredient['amount']
-            )
-            RecipeIngredient.objects.create(
-                ingredient_list=object,
-                recipe=instance,
-            )      
-        
-        instance.name = validated_data.get('name', instance.name)
-        instance.image = validated_data.get('image', instance.image)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', 
-            instance.cooking_time)
-        instance.save()
-
-        return instance
+        return super().update(
+            instance, validated_data
+        )
+    
+    def to_representation(self, instance):
+        return RecipeReadSerializer(
+            instance,
+            context={
+                'request': self.context.get('request')
+            }).data
 
 class RecipeSubscribeSerializer(serializers.ModelSerializer):
 
