@@ -2,17 +2,15 @@ from django.contrib import admin
 from .models import User
 
 @admin.register(User)
-class UserClass(admin.ModelAdmin):
+class UserAdmim(admin.ModelAdmin):
 
     list_display = (
         'id',
         'username',
         'first_name',
         'last_name',
-        'password',
         'email',
-        'is_staff',
-        'is_active',
+        'is_superuser',
     )
     list_filter = (
         'last_login',
@@ -21,3 +19,4 @@ class UserClass(admin.ModelAdmin):
         'username',
         'email',
     )
+    empty_value_display = '-пусто-'

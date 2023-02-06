@@ -3,7 +3,7 @@ from django.db.models import Count
 
 from recipes.models import (Tag, Ingredient, 
     RecipeIngredient, Recipe, Subscribe, 
-    # Favorite,
+    FavoriteRecipe, ShoppingCart,
 )
 
 
@@ -46,8 +46,36 @@ class TagAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(Subscribe)
-# admin.site.register(Favorite)
-admin.site.register(Ingredient, IngredientAdmin)
+class SubscribeAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'author', 'user', 'created'
+    )
+    search_fields = ('author', 'created')
+    list_filter = ('author', 'user', 'created')
+    empty_value_display = '-пусто-'
+
+
+class FavoriteRecipeAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'user', 'recipe'
+    )
+    search_fields = ('recipe',)
+    list_filter = ('id', 'user', 'recipe')
+    empty_value_display = '-пусто-'
+
+
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'user', 'recipe'
+    )
+    search_fields = ('user', 'recipe')
+    list_filter = ('user', 'recipe')
+    empty_value_display = '-пусто-'
+
+
 admin.site.register(Tag, TagAdmin)
+admin.site.register(Ingredient, IngredientAdmin)
+admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(Subscribe, SubscribeAdmin)
+admin.site.register(FavoriteRecipe, FavoriteRecipeAdmin)
+admin.site.register(ShoppingCart, ShoppingCartAdmin)

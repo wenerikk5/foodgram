@@ -33,19 +33,6 @@ class Tag(models.Model):
         return f'{self.slug}'
 
 
-# class RecipeTag(models.Model):
-#     tag = models.ForeignKey(
-#         Tag,
-#         on_delete=models.CASCADE, 
-#         related_name='tag'
-#     )
-#     recipe = models.ForeignKey(
-#         'Recipe',
-#         on_delete=models.CASCADE, 
-#         related_name='tag_recipe'
-#     )
-
-
 class Ingredient(models.Model):
     name = models.CharField(
         'Наименование ингредиента',
@@ -105,7 +92,8 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipe'
+        related_name='recipe',
+        verbose_name='Автор'
     )
     name = models.CharField(
         'Название',
@@ -142,26 +130,11 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ('-pub_date',)
-
-
-    FIELDS_INFO = (
-        'Author: {author};'
-        'Name: {name};'
-        'Text: {text};'
-        'Cooking time: {cooking_time};'
-        'Tags: {tags};'
-        'Ingredients: {ingredients}'
-    )
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
 
     def __str__(self):
-        return self.FIELDS_INFO.format(
-            author=self.author,
-            name=self.name,
-            text=self.text,
-            cooking_time=self.cooking_time,
-            tags=self.tags,
-            ingredients=self.ingredients
-        )
+        return f'Автор: {self.author.username}, рецепт: {self.name}'
 
 
 class Subscribe(models.Model):

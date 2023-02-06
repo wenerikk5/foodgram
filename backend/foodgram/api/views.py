@@ -2,23 +2,19 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import serializers
 
-from rest_framework import filters, status, viewsets, serializers
-from rest_framework.views import APIView
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
     IsAuthenticatedOrReadOnly, SAFE_METHODS)
 from djoser.views import UserViewSet
-from recipes.models import *
-from .filters import IngredientFilter, RecipeFilter
 
+from recipes.models import (Tag, Ingredient, RecipeIngredient, Recipe,
+    Subscribe, FavoriteRecipe, ShoppingCart)
+from .filters import IngredientFilter, RecipeFilter
 from .serializers import (AccountCreateSerializer, AccountListSerializer, 
     PasswordChangeSerializer, TagSerializer, IngredientSerializer,
-    IngredientListSerializer, IngredientCreateUpdateSerializer,
     RecipeReadSerializer, RecipeWriteSerializer, SubscribeSerializer, 
     FavoriteSerializer, ShoppingCartRecipeSerializer,
 )
@@ -30,7 +26,6 @@ User = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
     """Create User, set new password, get 'me' page, get subscribers list."""
-    
     queryset = User.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
@@ -57,8 +52,7 @@ class CustomUserViewSet(UserViewSet):
 
 
 class TagViewSet(ListRetrieveModelMixin):
-    """Получение списка тегов и просмотр отдельного тега по его id."""
-
+    """Retrieving of Tag list or detail view based on id."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
@@ -66,11 +60,7 @@ class TagViewSet(ListRetrieveModelMixin):
 
 
 class IngredientViewSet(ListRetrieveModelMixin):
-    """
-    Получение списка ингредиентов и просмотр отдельного ингредиента
-    по его id.
-    """
-
+    """Retrieving of Ingredient list or detail view based on id."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
@@ -79,6 +69,7 @@ class IngredientViewSet(ListRetrieveModelMixin):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """CRUD of recipt. Create file with shopping list."""
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
     filterset_class = RecipeFilter

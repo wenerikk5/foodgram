@@ -1,10 +1,12 @@
 import csv
 import os
 from datetime import datetime
+from django.contrib.auth import get_user_model
 from recipes.models import (Ingredient, Tag, RecipeIngredient,
     Recipe, Subscribe,
 )
-from users.models import User
+
+User = get_user_model()
 
 
 def run():

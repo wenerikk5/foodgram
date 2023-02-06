@@ -266,7 +266,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             #     )
             # ])
 
-
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         print("=====Validated data Tag:", tags)

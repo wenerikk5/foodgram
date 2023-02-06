@@ -24,7 +24,6 @@ router.register(
     basename='shopping_cart')
 
 
-
 urlpatterns = [
     path('', include(router.urls)),
     # path('', include('djoser.urls')),

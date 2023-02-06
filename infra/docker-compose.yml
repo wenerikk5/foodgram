@@ -29,10 +29,11 @@ services:
       - ./.env
 
   frontend:
-    container_name: frontend
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    # container_name: frontend
+    image: agnidock/foodgram_frontend:v1
+    # build:
+    #   context: ../frontend
+    #   dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
