@@ -197,53 +197,57 @@ class Subscribe(models.Model):
         return f'{self.user.username} -> {self.author.username}'
 
 
-# class Favorite(models.Model):
-#     user = models.ForeignKey(
-#         User,
-#         related_name='favorite_user',
-#         on_delete=models.CASCADE
-#     )
-#     recipe = models.ForeignKey(
-#         Recipe,
-#         related_name='favorite_recipe',
-#         on_delete=models.CASCADE
-#     )
+class FavoriteRecipe(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='favorite_user',
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='favorite_recipe',
+        on_delete=models.CASCADE,
+        verbose_name='Избранный рецепт'
+    )
 
-#     class Meta:
-#         verbose_name = 'Избранное'
-#         verbose_name_plural = 'Избранные'
-#         constraints = [
-#             models.UniqueConstraint(
-#                 fields=('user', 'recipe'),
-#                 name='unique_favorite_user_recipe'
-#             )
-#         ]
+    class Meta:
+        ordering = ('id',)
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='unique_favorite_user_recipe'
+            )
+        ]
     
-#     def __str__(self) -> str:
-#         return f'{self.recipe.name}'
+    def __str__(self) -> str:
+        return f'{self.user.username} -> {self.recipe.name}'
 
 
-# class ShoppingCart(models.Model):
-#     user = models.ForeignKey(
-#         User,
-#         related_name='shopping_cart_user',
-#         on_delete=models.CASCADE
-#     )
-#     recipe = models.ForeignKey(
-#         Recipe,
-#         related_name='shopping_cart_recipe',
-#         on_delete=models.CASCADE
-#     )
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='shopping_cart_user',
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='shopping_cart_recipe',
+        on_delete=models.CASCADE
+    )
 
-#     class Meta:
-#         verbose_name = 'Список покупок'
-#         verbose_name_plural = 'Список покупок'
-#         constraints = [
-#             models.UniqueConstraint(
-#                 fields=('user', 'recipe'),
-#                 name='unique_recipe_shopping_cart'
-#             )
-#         ]
+    class Meta:
+        ordering = ('id',)
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Список покупок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='unique_recipe_shopping_cart'
+            )
+        ]
 
-#     def __str__(self) -> str:
-#         return f'{self.recipe.name}'
+    def __str__(self) -> str:
+        return f'{self.user.username} -> {self.recipe.name}'

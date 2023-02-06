@@ -55,6 +55,8 @@ def run():
 
     with open('./data/recipes.csv') as file:
         reader = csv.DictReader(file)
+        tag = Tag.objects.first()
+        tags = [tag,]
         for row in reader:
             date = datetime.now()
             author = User.objects.get(id=row['author_id'])
@@ -66,6 +68,7 @@ def run():
                 pub_date=date
             )
             p.save()
+            p.tags.set(tags)
         print('=====Recipes Added=====')
 
 
