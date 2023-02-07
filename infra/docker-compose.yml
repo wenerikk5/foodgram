@@ -11,9 +11,10 @@ services:
 
   backend:
     container_name: backend
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+    image: wenerikk/foodgram_backend:v0
+    # build:
+    #   context: ../backend
+    #   dockerfile: Dockerfile
     command: >
       sh -c "python /app/manage.py makemigrations &&
              python /app/manage.py migrate &&
@@ -29,11 +30,10 @@ services:
       - ./.env
 
   frontend:
-    # container_name: frontend
-    image: agnidock/foodgram_frontend:v1
-    # build:
-    #   context: ../frontend
-    #   dockerfile: Dockerfile
+    container_name: frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:

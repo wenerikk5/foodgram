@@ -19,7 +19,7 @@ from .serializers import (AccountCreateSerializer, AccountListSerializer,
     FavoriteSerializer, ShoppingCartRecipeSerializer,
 )
 from .mixins import ListRetrieveModelMixin, CreateDestroyMixin
-from .permissions import IsAuthorOrReadOnly
+from .permissions import IsAuthorOrAdminOrReadOnly
 
 User = get_user_model()
 
@@ -27,7 +27,7 @@ User = get_user_model()
 class CustomUserViewSet(UserViewSet):
     """Create User, set new password, get 'me' page, get subscribers list."""
     queryset = User.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthorOrAdminOrReadOnly,)
 
     def get_serializer_class(self):
         if self.action == 'set_password':
@@ -55,7 +55,7 @@ class TagViewSet(ListRetrieveModelMixin):
     """Retrieving of Tag list or detail view based on id."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = None
 
 
@@ -63,7 +63,7 @@ class IngredientViewSet(ListRetrieveModelMixin):
     """Retrieving of Ingredient list or detail view based on id."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = None
     filterset_class = IngredientFilter
 
@@ -71,7 +71,7 @@ class IngredientViewSet(ListRetrieveModelMixin):
 class RecipeViewSet(viewsets.ModelViewSet):
     """CRUD of recipt. Create file with shopping list."""
     queryset = Recipe.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
+    permission_classes = (IsAuthorOrAdminOrReadOnly,)
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
@@ -83,7 +83,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
     
     @action(
-        methods=('get',),
+        methods=['GET'],
         detail=False,
         url_path='download_shopping_cart',
         pagination_class=None
@@ -119,6 +119,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class SubscribeViewSet(CreateDestroyMixin):
     """Create/delete subscribtion."""
     serializer_class = SubscribeSerializer
+    permission_classes = (IsAuthorOrAdminOrReadOnly,)
 
     def get_queryset(self):
         return self.request.user.follower.all()
@@ -137,7 +138,7 @@ class SubscribeViewSet(CreateDestroyMixin):
             )
         )
 
-    @action(methods=('delete',), detail=True)
+    @action(methods=['DELETE'], detail=True)
     def delete(self, request, user_id):
         author = get_object_or_404(User, id=user_id)
         try:
@@ -156,6 +157,7 @@ class SubscribeViewSet(CreateDestroyMixin):
 class FavoriteRecipeViewSet(CreateDestroyMixin):
     """Create/delete favorite receipt."""
     serializer_class = FavoriteSerializer
+    permission_classes = (IsAuthorOrAdminOrReadOnly,)
 
     def get_queryset(self):
         # user = self.request.user
@@ -175,7 +177,7 @@ class FavoriteRecipeViewSet(CreateDestroyMixin):
             )
         )
 
-    @action(methods=('delete',), detail=True)
+    @action(methods=['DELETE'], detail=True)
     def delete(self, request, recipe_id):
         try:
             get_object_or_404(
@@ -193,6 +195,7 @@ class FavoriteRecipeViewSet(CreateDestroyMixin):
 class ShoppingCartRecipeViewSet(CreateDestroyMixin):
     """Add/delete recipt in shopping list ."""
     serializer_class = ShoppingCartRecipeSerializer
+    permission_classes = (IsAuthorOrAdminOrReadOnly,)
 
     def get_queryset(self):
         return self.request.user.shopping_cart_user.all()
@@ -211,7 +214,7 @@ class ShoppingCartRecipeViewSet(CreateDestroyMixin):
             )
         )
 
-    @action(methods=('delete',), detail=True)
+    @action(methods=['DELETE'], detail=True)
     def delete(self, request, recipe_id):
         try:
             get_object_or_404(
