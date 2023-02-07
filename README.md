@@ -1,4 +1,4 @@
-### Foodgram - Продуктовый помощник
+## Foodgram - Продуктовый помощник
 ![DjangoREST](https://img.shields.io/badge/DJANGO-REST-ff1709?style=for-the-badge&logo=django&logoColor=white&color=ff1709&labelColor=gray) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
 
 ---
@@ -8,7 +8,7 @@
 
 В рамках проекта был разработан весь backend на REST API. Проект запускается с помощью docker compose.
 
-# Установка и настройка приложения
+### Установка и настройка приложения
 
 ```bash
 git clone <project>
@@ -17,7 +17,7 @@ cd foodgram/infra/
 mv .env-example .env
 ```
 
-# Docker
+### Docker
 ```bash
 # Сборка и запуск в фоновом режиме. Миграции и сборка статики уже будут выполнены.
 docker compose up -d
@@ -29,7 +29,7 @@ docker compose exec backend python manage.py import_users
 docker compose exec backend python manage.py import_recipes
 ```
 
-# Доступ тестового пользователя и администратора
+### Доступ тестового пользователя и администратора
 Вход на сайт потребует ввода почты и пароля пользователя.
 
 Аутентификация тестового пользователя (если добавлены командой import_users):
@@ -45,7 +45,7 @@ login: root
 password: 123
 ```
 
-# Документация
+### Документация
 
 Документация API доступна по адресу: http://localhost/redoc
 
@@ -71,10 +71,10 @@ POST http://localhost/api/auth/token/login/
 }
 ```
 
-# Использованные технологии
+### Использованные технологии
 
 Python 3.10, Django 3.2, DRF, Nginx, Gunicorn, Docker, PostgreSQL, Git
 
-# Превью веб-страницы
+### Превью веб-страницы
 
 <img src="https://github.com/wenerikk5/foodgram/blob/main/backend/foodgram/media/recipes/images/preview.jpg" alt="img" width="600" height='300'>
