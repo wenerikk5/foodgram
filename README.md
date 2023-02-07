@@ -77,4 +77,4 @@ Python 3.10, Django 3.2, DRF, Nginx, Gunicorn, Docker, PostgreSQL, Git
 
 ## Превью
 
-<img src="https://github.com/wenerikk5/foodgram/backend/foodgram/media/recipes/images/preview.jpg" alt="img" width="600" height='400'>
+<img src="https://github.com/wenerikk5/foodgram/blob/main/backend/foodgram/media/recipes/images/preview.jpg" alt="img" width="600" height='300'>
