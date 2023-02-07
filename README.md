@@ -8,7 +8,7 @@
 
 В рамках проекта был разработан весь backend на REST API. Проект запускается с помощью docker compose.
 
-**Установка и настройка приложения**
+## Установка и настройка приложения
 
 ```bash
 git clone <project>
@@ -17,7 +17,7 @@ cd foodgram/infra/
 mv .env-example .env
 ```
 
-**Docker**
+## Docker
 ```bash
 # Сборка и запуск в фоновом режиме. Миграции и сборка статики уже будут выполнены.
 docker compose up -d
@@ -29,7 +29,7 @@ docker compose exec backend python manage.py import_users
 docker compose exec backend python manage.py import_recipes
 ```
 
-**Доступ тестового пользователя и администратора**
+## Доступ тестового пользователя и администратора
 Вход на сайт потребует ввода почты и пароля пользователя.
 
 Аутентификация тестового пользователя (если добавлены командой import_users):
@@ -45,13 +45,13 @@ login: root
 password: 123
 ```
 
-**Документация**
+## Документация
 
 Документация API доступна по адресу: http://localhost/redoc
 
-**Эндпоинты к API (Postman)**
+##Эндпоинты к API (Postman)
 
-Регистрация нового пользователя:
+**Регистрация нового пользователя:**
 POST http://localhost/api/users/
 ```json
 {
@@ -62,7 +62,7 @@ POST http://localhost/api/users/
     "password": "..."
 }
 ```
-Получение токена
+**Получение токена:**
 POST http://localhost/api/auth/token/login/
 ```json
 {
@@ -71,8 +71,10 @@ POST http://localhost/api/auth/token/login/
 }
 ```
 
-**Использованные технологии**
+## Использованные технологии**
+
 Python 3.10, Django 3.2, DRF, Nginx, Gunicorn, Docker, PostgreSQL, Git
 
-**Превью** 
-<img src="https://github.com/wenerikk5/foodgram/blob/master/backend/media/recipes/images/preview.jpg" alt="img" width="600" height='400'>
+## Превью
+
+<img src="https://github.com/wenerikk5/foodgram/backend/foodgram/media/recipes/images/preview.jpg" alt="img" width="600" height='400'>
